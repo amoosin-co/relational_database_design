@@ -1,0 +1,39 @@
+services:
+  # Service for pgAdmin, a web-based administration tool for managing PostgreSQL databases
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: redb_pgadmin
+    env_file:
+      - ./envs/.pgadmin.env
+    depends_on:
+      - db
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - brgnet
+    ports:
+      - "9000:80"
+
+  # Service responsible for running the PostgreSQL database server
+  db:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+      target: run-stage
+    container_name: redb_db
+    env_file:
+      - ./envs/.db.env
+    volumes:
+      - ./postgres/initdb:/docker-entrypoint-initdb.d/
+      - ./backups:/backups
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - brgnet
+
+networks:
+  brgnet:
+    driver: bridge # Specifies the driver for the brgnet network.
+
+volumes:
+  db_data: {} # Defines the db_data volume.
+  pgadmin_data: {} # Define volume for pgAdmin
